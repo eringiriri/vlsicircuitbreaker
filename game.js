@@ -226,7 +226,8 @@ canvas.width  = CANVAS_SIZE;
 canvas.height = CANVAS_SIZE;
 
 // ── Game state ────────────────────────────────────────────────────────────────
-let state = 'idle'; // idle | running | dead | win
+let state = 'idle'; // idle | freeze | running | dead | win
+let freezeRemaining = 0; // ms remaining in freeze
 let level = 1;
 let speed = SPEEDS.medium; // normalized per frame
 let startPort, finishPort;
@@ -249,6 +250,7 @@ document.getElementById('sel-level').addEventListener('change', e => { level = +
 document.getElementById('sel-diff').addEventListener('change', e => { speed = SPEEDS[e.target.value]; });
 
 document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); startGame(); return; }
   if (state !== 'running') return;
   switch (e.key) {
     case 'ArrowRight': case 'd': case 'D': if (curDir !== 180) nextDir = 0;   break;
@@ -262,7 +264,9 @@ document.addEventListener('keydown', e => {
 // ── Start / reset ─────────────────────────────────────────────────────────────
 function startGame() {
   if (animId) cancelAnimationFrame(animId);
-  level = +document.getElementById('sel-level').value;
+
+  const selVal = +document.getElementById('sel-level').value;
+  level = selVal === 0 ? Math.ceil(Math.random() * 6) : selVal;
   speed = SPEEDS[document.getElementById('sel-diff').value];
 
   const ports = selectPorts(level);
@@ -273,11 +277,12 @@ function startGame() {
   curDir = headingToDir(startPort.heading);
   nextDir = curDir;
   tail   = [];
-  state  = 'running';
+  state  = 'freeze';
+  freezeRemaining = 1000;
   lastTime = null;
 
   overlay.classList.add('hidden');
-  setStatus('Navigate to FINISH port');
+  setStatus(`Level ${level}  —  Memorize positions...`);
   animId = requestAnimationFrame(loop);
 }
 
@@ -298,6 +303,19 @@ function loop(ts) {
   if (!lastTime) lastTime = ts;
   const dtMs = Math.min(ts - lastTime, 50); // cap at 50ms
   lastTime = ts;
+
+  if (state === 'freeze') {
+    freezeRemaining -= dtMs;
+    const secs = Math.ceil(freezeRemaining / 1000);
+    setStatus(`Level ${level}  —  Starting in ${secs}...`);
+    draw();
+    if (freezeRemaining <= 0) {
+      state = 'running';
+      setStatus('Navigate to FINISH port');
+    }
+    animId = requestAnimationFrame(loop);
+    return;
+  }
 
   const dtSec = dtMs / 1000;
   const frameDelta = dtSec * 60; // normalize to 60fps units
