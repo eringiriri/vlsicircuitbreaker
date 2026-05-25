@@ -176,10 +176,10 @@ function pickPort(cand) {
   const top   = Math.abs(p.y - MAP_TL.y);
   const bot   = Math.abs(p.y - MAP_BR.y);
   const minD  = Math.min(left, right, top, bot);
-  if (minD === left)  p.heading = 180; // points inward →
-  else if (minD === right) p.heading = 0;  // points inward ←
-  else if (minD === top)   p.heading = 270; // points inward ↓
-  else                     p.heading = 90;  // points inward ↑
+  if (minD === left)       p.heading = 0;   // left edge  → move right (inward)
+  else if (minD === right) p.heading = 180; // right edge → move left  (inward)
+  else if (minD === top)   p.heading = 270; // top edge   → move down  (inward)
+  else                     p.heading = 90;  // bottom edge→ move up    (inward)
   return p;
 }
 
