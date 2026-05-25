@@ -251,12 +251,12 @@ document.getElementById('sel-diff').addEventListener('change', e => { speed = SP
 document.addEventListener('keydown', e => {
   if (state !== 'running') return;
   switch (e.key) {
-    case 'ArrowRight': if (curDir !== 180) nextDir = 0;   break;
-    case 'ArrowUp':    if (curDir !== 270) nextDir = 90;  break;
-    case 'ArrowLeft':  if (curDir !== 0)   nextDir = 180; break;
-    case 'ArrowDown':  if (curDir !== 90)  nextDir = 270; break;
+    case 'ArrowRight': case 'd': case 'D': if (curDir !== 180) nextDir = 0;   break;
+    case 'ArrowUp':    case 'w': case 'W': if (curDir !== 270) nextDir = 90;  break;
+    case 'ArrowLeft':  case 'a': case 'A': if (curDir !== 0)   nextDir = 180; break;
+    case 'ArrowDown':  case 's': case 'S': if (curDir !== 90)  nextDir = 270; break;
   }
-  if (['ArrowRight','ArrowLeft','ArrowUp','ArrowDown'].includes(e.key)) e.preventDefault();
+  if (['ArrowRight','ArrowLeft','ArrowUp','ArrowDown','w','a','s','d','W','A','S','D'].includes(e.key)) e.preventDefault();
 });
 
 // ── Start / reset ─────────────────────────────────────────────────────────────
