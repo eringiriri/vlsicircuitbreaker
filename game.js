@@ -457,8 +457,8 @@ function n2c(nx) { return nx * CANVAS_SIZE; } // normalized → canvas pixels
 function drawStatic() {
   ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
   drawBackground();
-  if (startPort)  drawPort(startPort,  '#00ff88', 'S');
-  if (finishPort) drawPort(finishPort, '#ff4444', 'F');
+  if (startPort)  drawPort(startPort,  '#00ff88', 'S', PORT_DISPLAY_HALF);
+  if (finishPort) drawPort(finishPort, '#ff4444', 'F', FINISH_RADIUS);
 }
 
 function draw() {
@@ -466,8 +466,8 @@ function draw() {
   drawBackground();
   drawTail();
   drawHead();
-  drawPort(startPort,  '#00ff88', 'S');
-  drawPort(finishPort, '#ff4444', 'F');
+  drawPort(startPort,  '#00ff88', 'S', PORT_DISPLAY_HALF);
+  drawPort(finishPort, '#ff4444', 'F', FINISH_RADIUS);
 }
 
 function drawBackground() {
@@ -551,10 +551,10 @@ function drawHead() {
   ctx.shadowBlur  = 0;
 }
 
-function drawPort(port, color, label) {
+function drawPort(port, color, label, radius) {
   const cx = n2c(port.x);
   const cy = n2c(port.y);
-  const r  = n2c(PORT_DISPLAY_HALF);
+  const r  = n2c(radius || PORT_DISPLAY_HALF);
 
   ctx.shadowColor = color;
   ctx.shadowBlur  = 12;
@@ -568,8 +568,9 @@ function drawPort(port, color, label) {
   ctx.fill();
   ctx.shadowBlur = 0;
 
+  const labelSize = Math.round(n2c(PORT_DISPLAY_HALF) * 1.4);
   ctx.fillStyle   = color;
-  ctx.font        = `bold ${Math.round(r * 1.4)}px Courier New`;
+  ctx.font        = `bold ${labelSize}px Courier New`;
   ctx.textAlign   = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(label, cx, cy);
