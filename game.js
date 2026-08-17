@@ -221,7 +221,7 @@ const overlayMsg  = document.getElementById('overlay-msg');
 const overlaySub  = document.getElementById('overlay-sub');
 const statusEl    = document.getElementById('status');
 
-const CANVAS_SIZE = Math.min(window.innerWidth - 32, 680);
+let CANVAS_SIZE = Math.min(window.innerWidth - 32, 680);
 canvas.width  = CANVAS_SIZE;
 canvas.height = CANVAS_SIZE;
 
@@ -246,7 +246,24 @@ let animId   = null;
 // ── UI bindings ───────────────────────────────────────────────────────────────
 document.getElementById('btn-start').addEventListener('click', startGame);
 document.getElementById('btn-reset').addEventListener('click', resetGame);
-document.getElementById('sel-level').addEventListener('change', e => { level = +e.target.value; });
+document.getElementById('sel-level').addEventListener('change', e => {
+  // Only apply immediately when idle; startGame() re-reads the select value
+  // fresh anyway, and mutating the shared `level` mid-round corrupts the
+  // active round's wall/collision lookup (WALLS[level]).
+  if (state === 'running' || state === 'freeze') return;
+  level = +e.target.value;
+});
+
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    CANVAS_SIZE = Math.min(window.innerWidth - 32, 680);
+    canvas.width = CANVAS_SIZE;
+    canvas.height = CANVAS_SIZE;
+    if (state === 'idle') drawStatic(); else draw();
+  }, 150);
+});
 document.getElementById('sel-diff').addEventListener('change', e => { speed = SPEEDS[e.target.value]; });
 
 document.addEventListener('keydown', e => {
@@ -266,7 +283,7 @@ function startGame() {
   if (animId) cancelAnimationFrame(animId);
 
   const selVal = +document.getElementById('sel-level').value;
-  level = selVal === 0 ? Math.ceil(Math.random() * 6) : selVal;
+  level = selVal === 0 ? Math.floor(Math.random() * 6) + 1 : selVal;
   speed = SPEEDS[document.getElementById('sel-diff').value];
 
   const ports = selectPorts(level);
