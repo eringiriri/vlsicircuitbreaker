@@ -1,5 +1,11 @@
 'use strict';
 
+// Wall and port coordinate data (WALLS, PORT_CANDIDATES below) are derived from
+// Gl1tchStudios/glitch-minigames (client/circuitBreaker/map.lua, generic.lua),
+// Copyright (C) 2024 Glitch, licensed under the GNU General Public License v3.0.
+// This repository is therefore also licensed under GPL-3.0; see LICENSE.
+// https://github.com/Gl1tchStudios/glitch-minigames
+
 // ── Map boundaries (normalized 0-1) ──────────────────────────────────────────
 const MAP_TL = { x: 0.159, y: 0.153 };
 const MAP_BR = { x: 0.841, y: 0.848 };
@@ -124,6 +130,32 @@ const PORT_CANDIDATES = {
     { min:{x:0.768,y:0.161}, max:{x:0.82,y:0.161}  },
   ],
 };
+
+// Wall coordinates were hand-extracted from the real game and are slightly
+// off-axis (e.g. 0.154 vs 0.155), which reads as wobbly/hand-drawn edges.
+// Snap near-axis-aligned edges to true horizontal/vertical.
+function snapAxisAligned(poly, threshold) {
+  const snapped = poly.map((p) => p.slice());
+  const n = snapped.length;
+  for (let i = 0; i < n; i++) {
+    const a = snapped[i];
+    const b = snapped[(i + 1) % n];
+    const dx = Math.abs(a[0] - b[0]);
+    const dy = Math.abs(a[1] - b[1]);
+    if (dx > 0 && dx < threshold) {
+      const avgX = (a[0] + b[0]) / 2;
+      a[0] = avgX; b[0] = avgX;
+    } else if (dy > 0 && dy < threshold) {
+      const avgY = (a[1] + b[1]) / 2;
+      a[1] = avgY; b[1] = avgY;
+    }
+  }
+  return snapped;
+}
+
+for (const lvl in WALLS) {
+  WALLS[lvl] = WALLS[lvl].map((wall) => snapAxisAligned(wall, 0.008));
+}
 
 // ── Speeds (normalized per frame at 60fps) ───────────────────────────────────
 const SPEEDS = {
